@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hyperbeam on Netlify</title>
+  <style>
+    body {
+      background: #121212;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    iframe {
+      width: 90vw;
+      height: 80vh;
+      border: none;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      background: #00c38a;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #00a674;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔌 Hyperbeam Room</h1>
+  <button onclick="startRoom()">Start Room</button>
+  <iframe id="hyperbeamFrame" allow="clipboard-read; clipboard-write; microphone; camera" allowfullscreen></iframe>
+
+  <script>
+    async function startRoom() {
+      try {
+        const res = await fetch("/api/create-room", {
+          method: "POST"
+        });
+        const data = await res.json();
+        if (data.url) {
+          document.getElementById("hyperbeamFrame").src = data.url;
+        } else {
+          alert("Room creation failed.");
+          console.error(data);
+        }
+      } catch (err) {
+        alert("Network error.");
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>
