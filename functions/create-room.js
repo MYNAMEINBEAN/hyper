@@ -12,7 +12,7 @@ export async function handler(event, context) {
   }
 
   try {
-    const response = await fetch("https://engine.hyperbeam.com/v0/vm", {
+    const response = await fetch("https://enginetest.hyperbeam.com/v0", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${API_KEY}`,
