@@ -2,66 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Hyperbeam on Netlify</title>
+  <title>Hyperbeam Test Embed</title>
   <style>
-    body {
-      background: #121212;
-      color: #fff;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    iframe {
-      width: 90vw;
-      height: 80vh;
-      border: none;
-      border-radius: 10px;
-      margin-top: 20px;
-    }
-
-    button {
-      padding: 10px 20px;
-      font-size: 1rem;
-      background: #00c38a;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #00a674;
+    #container {
+      width: 1280px;
+      height: 720px;
+      border: 1px solid #ccc;
+      margin: 20px auto;
     }
   </style>
 </head>
 <body>
-  <h1>🔌 Hyperbeam Room</h1>
-  <button onclick="startRoom()">Start Room</button>
-  <iframe id="hyperbeamFrame" allow="clipboard-read; clipboard-write; microphone; camera" allowfullscreen></iframe>
+  <h1>Hyperbeam Test Embed</h1>
+  <div id="container"></div>
+  <div id="status">Loading...</div>
 
-  <script>
-    async function startRoom() {
+  <script type="module">
+    import Hyperbeam from "https://unpkg.com/@hyperbeam/web@latest/dist/index.js";
+
+    async function createRoomAndStart() {
+      const statusEl = document.getElementById("status");
       try {
-        const res = await fetch("/api/create-room", {
-          method: "POST"
-        });
-        const data = await res.json();
-        if (data.url) {
-          document.getElementById("hyperbeamFrame").src = data.url;
-        } else {
-          alert("Room creation failed.");
-          console.error(data);
+        const res = await fetch("/.netlify/functions/create-room");
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || "Failed to create room");
         }
-      } catch (err) {
-        alert("Network error.");
-        console.error(err);
+
+        const { embedUrl, adminToken } = await res.json();
+        statusEl.textContent = "Room created. Starting Hyperbeam...";
+
+        const container = document.getElementById("container");
+        const hb = await Hyperbeam(container, embedUrl, { adminToken });
+
+        statusEl.textContent = `Hyperbeam running. User ID: ${hb.userId}`;
+      } catch (error) {
+        statusEl.textContent = "Error: " + error.message;
+        console.error(error);
       }
     }
+
+    createRoomAndStart();
   </script>
 </body>
 </html>
