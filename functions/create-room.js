@@ -4,7 +4,7 @@ export async function handler(event, context) {
   const API_KEY = process.env.HYPERBEAM_API_KEY;
 
   if (!API_KEY) {
-    console.error("API key missing!");
+    console.error("❌ Missing HYPERBEAM_API_KEY env var");
     return {
       statusCode: 500,
       body: JSON.stringify({ error: "Missing API key" }),
@@ -21,19 +21,34 @@ export async function handler(event, context) {
       body: JSON.stringify({ browser: "chromium" }),
     });
 
-    const data = await response.json();
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseErr) {
+      data = { parse_error: "Invalid JSON in response", raw: text };
+    }
 
-    console.log("Hyperbeam response:", data);
+    console.log("Hyperbeam API status:", response.status);
+    console.log("Hyperbeam API response:", data);
 
+    if (!response.ok) {
+      return {
+        statusCode: response.status,
+        body: JSON.stringify({ error: "Hyperbeam error", details: data }),
+      };
+    }
+
+    // On success, data should have an embed_url or url
     return {
-      statusCode: response.status,
+      statusCode: 200,
       body: JSON.stringify(data),
     };
-  } catch (error) {
-    console.error("Fetch failed:", error);
+  } catch (fetchErr) {
+    console.error("❌ Fetch failed:", fetchErr);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Failed to fetch from Hyperbeam" }),
+      body: JSON.stringify({ error: "Failed to fetch from Hyperbeam", details: fetchErr.toString() }),
     };
   }
 }
